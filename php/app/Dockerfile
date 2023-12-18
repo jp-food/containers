@@ -1,16 +1,11 @@
-FROM php:8.2.0-alpine
+FROM dunglas/frankenphp:1.0-php8.3-alpine
 
-COPY --from=mlocati/php-extension-installer:1.5.51 /usr/bin/install-php-extensions /usr/local/bin/install-php-extensions
-
-RUN set -xe \
- && apk add --no-cache unzip \
- && install-php-extensions opcache sockets pcntl pdo_pgsql decimal intl zip gd \
- && rm /usr/local/bin/install-php-extensions \
- && mkdir /app
+RUN set -xe && install-php-extensions opcache sockets pcntl pdo_pgsql gd decimal bcmath intl zip
 
 COPY config/php.ini /usr/local/etc/php/php.ini
+COPY config/Caddyfile /etc/caddy/Caddyfile
 
-WORKDIR /app
+HEALTHCHECK NONE
 
-ENTRYPOINT ["/usr/local/bin/php"]
-CMD ["-a"]
+ENTRYPOINT ["/usr/local/bin/frankenphp"]
+CMD ["run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]
